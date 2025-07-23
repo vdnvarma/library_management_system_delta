@@ -5,26 +5,26 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/lmsdb
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=postgres
-      - SPRING_DATASOURCE_DRIVER=org.postgresql.Driver
-      - SPRING_JPA_DIALECT=org.hibernate.dialect.PostgreSQLDialect
-      - SPRING_JPA_PLATFORM=org.hibernate.dialect.PostgreSQLDialect
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/lmsdb?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=Dedeep@23
+      - SPRING_DATASOURCE_DRIVER=com.mysql.cj.jdbc.Driver
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQL8Dialect
+      - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.MySQL8Dialect
       - JWT_SECRET=localdevelopmentsecretkey
       - PORT=8080
     depends_on:
       - db
   db:
-    image: postgres:14
+    image: mysql:8.0
+    command: --default-authentication-plugin=mysql_native_password
     environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=lmsdb
+      - MYSQL_ROOT_PASSWORD=Dedeep@23
+      - MYSQL_DATABASE=lmsdb
     ports:
-      - "5432:5432"
+      - "3306:3306"
     volumes:
-      - pgdata:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
 
 volumes:
-  pgdata:
+  mysql_data:
