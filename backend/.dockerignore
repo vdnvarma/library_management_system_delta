@@ -1,0 +1,10 @@
+.git
+.gitignore
+.env
+target/*
+!target/*.jar
+README.md
+*.md
+.idea
+.settings
+.vscode
