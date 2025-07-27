@@ -15,7 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping({"/api/users", "/users"}) // Support both paths with and without /api prefix
 public class UserController {
     private final UserService userService;
     @Autowired

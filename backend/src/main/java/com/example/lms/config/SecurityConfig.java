@@ -36,6 +36,8 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
                 .requestMatchers("/api/users/login", "/api/users/register", "/api/health").permitAll()
+                .requestMatchers("/api/debug/**", "/debug/**").permitAll() // Debug endpoints
+                .requestMatchers("/users/login", "/users/register").permitAll() // Alternative paths without /api prefix
                 .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/search").permitAll()
                 
                 // Student endpoints (most specific paths first)

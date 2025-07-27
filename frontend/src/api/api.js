@@ -1,4 +1,5 @@
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
+console.log("API_BASE URL:", API_BASE);
 
 // JWT helpers
 export function setJwt(token) {
@@ -15,18 +16,41 @@ export function getJwt() {
 // Public endpoints
 export async function login(username, password) {
   console.log("Attempting login for user: " + username);
-  const res = await fetch(`${API_BASE}/users/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ username, password }),
-  });
-  if (!res.ok) {
-    console.log("Login failed with status: " + res.status);
-    return { error: "Login failed", status: res.status };
+  const url = `${API_BASE}/users/login`;
+  console.log("Login request URL:", url);
+  
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { 
+        "Content-Type": "application/json",
+        // Add this to help with debugging CORS
+        "X-Requested-With": "XMLHttpRequest"
+      },
+      body: JSON.stringify({ username, password }),
+    });
+    
+    console.log("Login response status:", res.status);
+    
+    if (!res.ok) {
+      console.log("Login failed with status: " + res.status);
+      try {
+        // Try to read the error response body if available
+        const errorData = await res.json();
+        console.log("Error response:", errorData);
+        return { error: errorData.error || "Login failed", status: res.status };
+      } catch (e) {
+        return { error: "Login failed", status: res.status };
+      }
+    }
+    
+    const data = await res.json();
+    console.log("Login successful, token received: " + (data.token ? "yes" : "no"));
+    return data;
+  } catch (error) {
+    console.error("Login request error:", error);
+    return { error: "Network or CORS error", details: error.message };
   }
-  const data = await res.json();
-  console.log("Login successful, token received: " + (data.token ? "yes" : "no"));
-  return data;
 }
 
 export async function register(name, username, password) {
