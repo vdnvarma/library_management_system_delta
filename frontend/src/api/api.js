@@ -3,23 +3,30 @@ const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
 // JWT helpers
 export function setJwt(token) {
   localStorage.setItem("jwt", token);
+  console.log("JWT token stored: " + (token ? "yes" : "no"));
 }
 
 export function getJwt() {
-  return localStorage.getItem("jwt");
+  const token = localStorage.getItem("jwt");
+  console.log("JWT token retrieved: " + (token ? "yes" : "no"));
+  return token;
 }
 
 // Public endpoints
 export async function login(username, password) {
+  console.log("Attempting login for user: " + username);
   const res = await fetch(`${API_BASE}/users/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
   });
   if (!res.ok) {
+    console.log("Login failed with status: " + res.status);
     return { error: "Login failed", status: res.status };
   }
-  return res.json();
+  const data = await res.json();
+  console.log("Login successful, token received: " + (data.token ? "yes" : "no"));
+  return data;
 }
 
 export async function register(name, username, password) {
@@ -37,7 +44,9 @@ export async function register(name, username, password) {
 // Protected endpoints (require JWT)
 function authHeaders() {
   const token = getJwt();
-  return token ? { "Authorization": "Bearer " + token } : {};
+  const headers = token ? { "Authorization": "Bearer " + token } : {};
+  console.log("Authorization header included: " + (headers.Authorization ? "yes" : "no"));
+  return headers;
 }
 
 export async function getBooks() {

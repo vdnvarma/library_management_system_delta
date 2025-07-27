@@ -18,17 +18,27 @@ function App() {
   // Check for saved user session on app load
   useEffect(() => {
     const token = getJwt();
+    console.log("App started, checking for saved session");
     if (token) {
+      console.log("Found saved JWT token");
       // User has a token saved, try to get user info from localStorage
       const savedUser = localStorage.getItem('user');
       if (savedUser) {
         try {
-          setUser(JSON.parse(savedUser));
+          const userData = JSON.parse(savedUser);
+          console.log("Restoring user session for: " + userData.username);
+          setUser(userData);
         } catch (error) {
           console.error('Failed to parse saved user', error);
           localStorage.removeItem('user');
+          localStorage.removeItem('jwt');
         }
+      } else {
+        console.log("Found token but no saved user data, clearing token");
+        localStorage.removeItem('jwt');
       }
+    } else {
+      console.log("No saved JWT token found");
     }
     setIsLoading(false);
   }, []);

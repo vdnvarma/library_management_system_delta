@@ -8,12 +8,21 @@ export default function Login({ onLogin }) {
 
   const handleSubmit = async e => {
     e.preventDefault();
-    const user = await login(username, password);
-    if (user && user.token) {
-      setJwt(user.token);
-      onLogin(user);
-    } else {
-      setError(user?.error || "Invalid credentials");
+    setError("");
+    try {
+      console.log("Attempting login for: " + username);
+      const user = await login(username, password);
+      if (user && user.token) {
+        console.log("Login successful, setting JWT token");
+        setJwt(user.token);
+        onLogin(user);
+      } else {
+        console.log("Login failed, no token received");
+        setError(user?.error || "Invalid credentials");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("Login failed: " + (error.message || "Unknown error"));
     }
   };
 
