@@ -1,22 +1,21 @@
 FROM eclipse-temurin:17-jdk-alpine as build
 WORKDIR /workspace/app
 
-# Copy maven executable and pom.xml
-COPY mvnw .
-COPY .mvn .mvn
+# Install Maven
+RUN apk add --no-cache maven
+
+# Copy pom.xml for dependency resolution
 COPY pom.xml .
 
-# Make the mvnw executable
-RUN chmod +x mvnw
-
 # Build all dependencies
-RUN ./mvnw dependency:go-offline -B
+RUN mvn dependency:go-offline -B
 
 # Copy source code
 COPY src src
 
 # Build the application
-RUN ./mvnw package -DskipTests
+RUN mvn package -DskipTests
+# Extract the built JAR file
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 
 # Production stage
