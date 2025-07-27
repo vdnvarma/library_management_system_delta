@@ -7,7 +7,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import java.util.Arrays;
-import java.util.Collections;
 
 @Configuration
 public class CorsConfig {
@@ -27,7 +26,12 @@ public class CorsConfig {
         System.out.println("CORS Configuration initializing");
         System.out.println("Raw allowed origins: " + allowedOrigins);
         
-        // Handle allowed origins
+        // For OPTIONS preflight requests, we need to directly add the production site
+        config.addAllowedOrigin("https://lmsbeta.onrender.com");
+        config.addAllowedOrigin("http://localhost:3000");
+        System.out.println("CORS: Added allowed origins directly");
+        
+        // Also add origins from properties
         if (allowedOrigins == null || allowedOrigins.trim().isEmpty() || "*".equals(allowedOrigins.trim())) {
             // Wildcard case
             config.addAllowedOrigin("*");
@@ -47,15 +51,26 @@ public class CorsConfig {
             System.out.println("CORS: Using specific origins with allowCredentials=true");
         }
         
-        // Set allowed methods
+        // Set allowed methods (make sure OPTIONS is included)
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         
-        // Set allowed headers
-        config.setAllowedHeaders(Collections.singletonList("*"));
+        // Set allowed headers (expand the list for broader compatibility)
+        config.setAllowedHeaders(Arrays.asList(
+            "Origin", 
+            "Content-Type", 
+            "Accept", 
+            "Authorization", 
+            "X-Requested-With",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers",
+            "Access-Control-Allow-Origin"
+        ));
         
         // Expose headers
         config.setExposedHeaders(Arrays.asList(
             "Access-Control-Allow-Origin", 
+            "Access-Control-Allow-Methods",
+            "Access-Control-Allow-Headers",
             "Access-Control-Allow-Credentials", 
             "Authorization"
         ));

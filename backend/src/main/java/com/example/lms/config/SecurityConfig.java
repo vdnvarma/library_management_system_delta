@@ -40,13 +40,28 @@ public class SecurityConfig {
         http
             // Add CORS filter first
             .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
-            // Configure CORS
-            .cors(cors -> {})
+            // Configure CORS - explicitly enable with default configuration
+            .cors(cors -> {
+                System.out.println("Setting up CORS configuration in SecurityFilterChain");
+                cors.configurationSource(request -> {
+                    var corsConfig = new org.springframework.web.cors.CorsConfiguration();
+                    corsConfig.setAllowedOrigins(java.util.Arrays.asList("https://lmsbeta.onrender.com", "http://localhost:3000"));
+                    corsConfig.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
+                    corsConfig.setAllowCredentials(true);
+                    corsConfig.setAllowedHeaders(java.util.Arrays.asList("Authorization", "Content-Type", "Origin"));
+                    corsConfig.setMaxAge(3600L);
+                    System.out.println("Created CORS config for request from: " + request.getHeader("Origin"));
+                    return corsConfig;
+                });
+            })
             // Disable CSRF for API
             .csrf(csrf -> csrf.disable())
             // Configure authorization
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints (both with and without /api prefix)
+                // OPTIONS requests for CORS preflight
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                // Other public endpoints
                 .requestMatchers(
                     "/", "/index.html", // Root path
                     "/api/users/login", "/users/login",
@@ -54,7 +69,7 @@ public class SecurityConfig {
                     "/api/health", "/health",
                     "/api/debug/**", "/debug/**",
                     "/api/test/**", "/test/**",
-                    "/test.html", // Test page
+                    "/test.html", "/cors-test.html", "/admin-tools.html", // Test pages
                     "/favicon.ico", // Browser favicon requests
                     "/error" // Error pages
                 ).permitAll()
