@@ -35,6 +35,8 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        System.out.println("Configuring SecurityFilterChain with CORS and JWT filters");
+        
         http
             // Add CORS filter first
             .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
@@ -46,11 +48,15 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints (both with and without /api prefix)
                 .requestMatchers(
+                    "/", "/index.html", // Root path
                     "/api/users/login", "/users/login",
                     "/api/users/register", "/users/register",
                     "/api/health", "/health",
                     "/api/debug/**", "/debug/**",
-                    "/api/test/**", "/test/**"
+                    "/api/test/**", "/test/**",
+                    "/test.html", // Test page
+                    "/favicon.ico", // Browser favicon requests
+                    "/error" // Error pages
                 ).permitAll()
                 // Public GET endpoints
                 .requestMatchers(HttpMethod.GET, 

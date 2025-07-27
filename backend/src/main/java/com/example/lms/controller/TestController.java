@@ -129,20 +129,23 @@ public class TestController {
     
     @GetMapping("/resetAdminPassword")
     public ResponseEntity<?> resetAdminPassword(
+            @RequestParam(required = false, defaultValue = "admin") String username,
             @RequestParam(defaultValue = "admin123") String newPassword) {
-        Optional<User> adminUser = userRepository.findByUsername("admin");
+        Optional<User> userToReset = userRepository.findByUsername(username);
         Map<String, Object> response = new HashMap<>();
         
-        if (adminUser.isPresent()) {
-            User admin = adminUser.get();
-            admin.setPassword(newPassword);
-            userRepository.save(admin);
+        if (userToReset.isPresent()) {
+            User user = userToReset.get();
+            user.setPassword(newPassword);
+            userRepository.save(user);
             
             response.put("success", true);
-            response.put("message", "Admin password reset to: " + newPassword);
+            response.put("message", "User '" + username + "' password reset to: " + newPassword);
+            response.put("username", username);
         } else {
             response.put("success", false);
-            response.put("message", "Admin user not found");
+            response.put("message", "User '" + username + "' not found");
+            response.put("username", username);
         }
         
         return ResponseEntity.ok(response);

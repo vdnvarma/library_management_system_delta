@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LMS Admin Password Reset</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        pre {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .endpoint {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+        input {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        form {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>LMS Admin Password Reset Tool</h1>
+    
+    <div class="section">
+        <h2>Current Admin Users</h2>
+        <button onclick="loadAdminUsers()">Check Existing Admin Users</button>
+        <div id="adminUsers"></div>
+    </div>
+    
+    <div class="section">
+        <h2>Reset Admin Password</h2>
+        <div class="endpoint">
+            <p>Use this form to reset an admin user password. This is useful if you're having trouble logging in.</p>
+            <form id="adminForm">
+                <div>
+                    <label for="username">Admin Username:</label>
+                    <input type="text" id="username" value="admin" />
+                </div>
+                <div>
+                    <label for="password">New Password:</label>
+                    <input type="text" id="password" value="admin123" />
+                </div>
+                <button type="button" onclick="resetPassword()">Reset Password</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Create New Admin</h2>
+        <div class="endpoint">
+            <p>Use this form to create a new admin user if none exists.</p>
+            <form id="newAdminForm">
+                <div>
+                    <label for="newUsername">Username:</label>
+                    <input type="text" id="newUsername" value="newadmin" />
+                </div>
+                <div>
+                    <label for="newPassword">Password:</label>
+                    <input type="text" id="newPassword" value="admin123" />
+                </div>
+                <div>
+                    <label for="newName">Display Name:</label>
+                    <input type="text" id="newName" value="New Administrator" />
+                </div>
+                <button type="button" onclick="createAdmin()">Create Admin</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Test Login</h2>
+        <div class="endpoint">
+            <p>Test login with a username and password to verify credentials work.</p>
+            <form id="testLoginForm">
+                <div>
+                    <label for="testUsername">Username:</label>
+                    <input type="text" id="testUsername" value="admin" />
+                </div>
+                <div>
+                    <label for="testPassword">Password:</label>
+                    <input type="text" id="testPassword" value="admin123" />
+                </div>
+                <button type="button" onclick="testLogin()">Test Login</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>Response:</h2>
+        <pre id="response">Results will appear here...</pre>
+    </div>
+    
+    <script>
+        async function loadAdminUsers() {
+            document.getElementById('response').innerText = 'Loading admin users...';
+            try {
+                const res = await fetch('/api/debug/users');
+                const data = await res.json();
+                
+                const adminUsers = data.users.filter(user => user.role === 'ADMIN');
+                
+                let html = '<h3>Admin Users</h3>';
+                if (adminUsers.length === 0) {
+                    html += '<p>No admin users found.</p>';
+                } else {
+                    html += '<ul>';
+                    adminUsers.forEach(admin => {
+                        html += `<li><strong>Username:</strong> ${admin.username} | <strong>Name:</strong> ${admin.name} | <strong>Has Password:</strong> ${admin.hasPassword}</li>`;
+                    });
+                    html += '</ul>';
+                }
+                
+                document.getElementById('adminUsers').innerHTML = html;
+                document.getElementById('response').innerText = `Found ${adminUsers.length} admin users.\n\nFull response: ${JSON.stringify(data, null, 2)}`;
+            } catch (error) {
+                document.getElementById('response').innerText = `Error: ${error.message}`;
+            }
+        }
+        
+        async function resetPassword() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            document.getElementById('response').innerText = `Resetting password for ${username}...`;
+            
+            try {
+                const res = await fetch(`/api/test/resetAdminPassword?username=${encodeURIComponent(username)}&newPassword=${encodeURIComponent(password)}`);
+                const data = await res.json();
+                document.getElementById('response').innerText = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('response').innerText = `Error: ${error.message}`;
+            }
+        }
+        
+        async function createAdmin() {
+            const username = document.getElementById('newUsername').value;
+            const password = document.getElementById('newPassword').value;
+            const name = document.getElementById('newName').value;
+            
+            document.getElementById('response').innerText = `Creating new admin user ${username}...`;
+            
+            try {
+                const res = await fetch(`/api/test/createAdmin?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}&name=${encodeURIComponent(name)}`);
+                const data = await res.json();
+                document.getElementById('response').innerText = JSON.stringify(data, null, 2);
+                
+                // Refresh admin users list
+                loadAdminUsers();
+            } catch (error) {
+                document.getElementById('response').innerText = `Error: ${error.message}`;
+            }
+        }
+        
+        async function testLogin() {
+            const username = document.getElementById('testUsername').value;
+            const password = document.getElementById('testPassword').value;
+            
+            document.getElementById('response').innerText = `Testing login for ${username}...`;
+            
+            try {
+                const res = await fetch(`/api/test/loginWithDetails?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`);
+                const data = await res.json();
+                
+                if (data.success) {
+                    document.getElementById('response').innerText = `Login successful! Response:\n\n${JSON.stringify(data, null, 2)}`;
+                } else {
+                    document.getElementById('response').innerText = `Login failed. Response:\n\n${JSON.stringify(data, null, 2)}`;
+                }
+            } catch (error) {
+                document.getElementById('response').innerText = `Error: ${error.message}`;
+            }
+        }
+        
+        // Load admin users on page load
+        document.addEventListener('DOMContentLoaded', loadAdminUsers);
+    </script>
+</body>
+</html>
