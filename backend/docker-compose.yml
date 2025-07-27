@@ -5,26 +5,30 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/lmsdb?useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
-      - SPRING_DATASOURCE_USERNAME=root
-      - SPRING_DATASOURCE_PASSWORD=Dedeep@23
+      - SPRING_DATASOURCE_URL=jdbc:mysql://lms-db-lmd-db.i.aivencloud.com:24757/defaultdb?useSSL=true&serverTimezone=UTC
+      - SPRING_DATASOURCE_USERNAME=avnadmin
+      - SPRING_DATASOURCE_PASSWORD=AVNS_oq-wCnUhDokSwupLygp
       - SPRING_DATASOURCE_DRIVER=com.mysql.cj.jdbc.Driver
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQL8Dialect
       - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.MySQL8Dialect
-      - JWT_SECRET=localdevelopmentsecretkey
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - SPRING_JPA_SHOW_SQL=true
+      - JWT_SECRET=lmsproj3ct$3cr3tK3y!ForRenderDeploy@2025
       - PORT=8080
-    depends_on:
-      - db
-  db:
-    image: mysql:8.0
-    command: --default-authentication-plugin=mysql_native_password
-    environment:
-      - MYSQL_ROOT_PASSWORD=Dedeep@23
-      - MYSQL_DATABASE=lmsdb
-    ports:
-      - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
+      - LOGGING_LEVEL=INFO
 
-volumes:
-  mysql_data:
+# Local database service is commented out since we're using Aiven.io cloud database
+# Uncomment below to switch back to local development database
+#  db:
+#    image: mysql:8.0
+#    command: --default-authentication-plugin=mysql_native_password
+#    environment:
+#      - MYSQL_ROOT_PASSWORD=Dedeep@23
+#      - MYSQL_DATABASE=lmsdb
+#    ports:
+#      - "3306:3306"
+#    volumes:
+#      - mysql_data:/var/lib/mysql
+#
+#volumes:
+#  mysql_data:
