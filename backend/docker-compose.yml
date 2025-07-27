@@ -15,7 +15,8 @@ services:
       - SPRING_JPA_SHOW_SQL=true
       - JWT_SECRET=lmsproj3ct$3cr3tK3y!ForRenderDeploy@2025
       - PORT=8080
-      - LOGGING_LEVEL=INFO
+      - LOGGING_LEVEL_ROOT=INFO
+      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_AUTOCONFIGURE=INFO
 
 # Local database service is commented out since we're using Aiven.io cloud database
 # Uncomment below to switch back to local development database
