@@ -3,20 +3,13 @@ services:
   app:
     build: .
     ports:
-      - "8080:8080"
+      - "${PORT:-8080}:8080"
+    env_file:
+      - .env
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://lms-db-lmd-db.i.aivencloud.com:24757/defaultdb?useSSL=true&serverTimezone=UTC
-      - SPRING_DATASOURCE_USERNAME=avnadmin
-      - SPRING_DATASOURCE_PASSWORD=AVNS_oq-wCnUhDokSwupLygp
       - SPRING_DATASOURCE_DRIVER=com.mysql.cj.jdbc.Driver
       - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQL8Dialect
       - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.MySQL8Dialect
-      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - SPRING_JPA_SHOW_SQL=true
-      - JWT_SECRET=Dedeep23
-      - PORT=8080
-      - LOGGING_LEVEL_ROOT=INFO
-      - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_AUTOCONFIGURE=INFO
 
 # Local database service is commented out since we're using Aiven.io cloud database
 # Uncomment below to switch back to local development database

@@ -14,7 +14,7 @@ RUN mvn dependency:go-offline -B
 COPY src src
 
 # Build the application
-RUN mvn package -DskipTests
+RUN mvn -version && mvn package -DskipTests -Dmaven.compiler.source=17 -Dmaven.compiler.target=17
 # Extract the built JAR file
 RUN mkdir -p target/dependency && (cd target/dependency; jar -xf ../*.jar)
 

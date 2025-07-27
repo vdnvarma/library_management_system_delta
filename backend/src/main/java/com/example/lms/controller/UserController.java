@@ -6,12 +6,13 @@ import com.example.lms.service.UserService;
 import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import com.example.lms.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -30,27 +31,21 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user) {
-        System.out.println("Login attempt for user: " + user.getUsername());
-        
         Optional<User> found = userService.findByUsername(user.getUsername())
             .filter(u -> u.getPassword().equals(user.getPassword()));
-            
         if (found.isPresent()) {
             String token = jwtUtil.generateToken(found.get().getUsername(), found.get().getRole().name());
-            System.out.println("Login successful for user: " + user.getUsername() + " with role: " + found.get().getRole().name());
-            System.out.println("Generated token length: " + token.length());
-            
             Map<String, Object> responseMap = new HashMap<>();
             responseMap.put("id", found.get().getId());
             responseMap.put("name", found.get().getName());
             responseMap.put("username", found.get().getUsername());
             responseMap.put("role", found.get().getRole());
             responseMap.put("token", token);
-            
             return ResponseEntity.ok(responseMap);
         } else {
-            System.out.println("Login failed for user: " + user.getUsername() + " - Invalid credentials");
-            return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
+            Map<String, String> errorMap = new HashMap<>();
+            errorMap.put("error", "Invalid credentials");
+            return ResponseEntity.status(401).body(errorMap);
         }
     }
     
@@ -64,7 +59,9 @@ public class UserController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
                 
         if (!isAdmin) {
-            return ResponseEntity.status(403).body(Map.of("error", "Only administrators can view all users"));
+            Map<String, String> errorMap = new HashMap<>();
+            errorMap.put("error", "Only administrators can view all users");
+            return ResponseEntity.status(403).body(errorMap);
         }
         
         return ResponseEntity.ok(userService.getAllUsers());
@@ -87,7 +84,9 @@ public class UserController {
         
         // Allow access if admin or user accessing own record
         if (!isAdmin && (currentUser == null || !currentUser.getId().equals(id))) {
-            return ResponseEntity.status(403).body(Map.of("error", "Access denied"));
+            Map<String, String> errorMap = new HashMap<>();
+            errorMap.put("error", "Access denied");
+            return ResponseEntity.status(403).body(errorMap);
         }
         
         return ResponseEntity.ok(user);
@@ -115,14 +114,18 @@ public class UserController {
         
         // Non-admins cannot change their role
         if (!isAdmin && userDetails.getRole() != user.getRole()) {
-            return ResponseEntity.status(403).body(Map.of("error", "Only administrators can change user roles"));
+            Map<String, String> errorMap = new HashMap<>();
+            errorMap.put("error", "Only administrators can change user roles");
+            return ResponseEntity.status(403).body(errorMap);
         }
         
         user.setName(userDetails.getName());
         // Only update username if provided and not already taken
         if (userDetails.getUsername() != null && !userDetails.getUsername().equals(user.getUsername())) {
             if (userService.findByUsername(userDetails.getUsername()).isPresent()) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Username already taken"));
+                Map<String, String> errorMap = new HashMap<>();
+                errorMap.put("error", "Username already taken");
+                return ResponseEntity.badRequest().body(errorMap);
             }
             user.setUsername(userDetails.getUsername());
         }
@@ -148,7 +151,9 @@ public class UserController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
                 
         if (!isAdmin) {
-            return ResponseEntity.status(403).body(Map.of("error", "Only administrators can delete users"));
+            Map<String, String> errorMap = new HashMap<>();
+            errorMap.put("error", "Only administrators can delete users");
+            return ResponseEntity.status(403).body(errorMap);
         }
         
         User user = userService.findById(id).orElse(null);
@@ -157,7 +162,9 @@ public class UserController {
         }
         
         userService.deleteUser(id);
-        return ResponseEntity.ok(Map.of("message", "User deleted successfully"));
+        Map<String, String> responseMap = new HashMap<>();
+        responseMap.put("message", "User deleted successfully");
+        return ResponseEntity.ok(responseMap);
     }
     
     @PutMapping("/{id}/role")
@@ -168,7 +175,9 @@ public class UserController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
                 
         if (!isAdmin) {
-            return ResponseEntity.status(403).body(Map.of("error", "Only administrators can change user roles"));
+            Map<String, String> errorMap = new HashMap<>();
+            errorMap.put("error", "Only administrators can change user roles");
+            return ResponseEntity.status(403).body(errorMap);
         }
         
         User user = userService.findById(id).orElse(null);
@@ -179,14 +188,18 @@ public class UserController {
         try {
             String roleName = roleRequest.get("role");
             if (roleName == null) {
-                return ResponseEntity.badRequest().body(Map.of("error", "Role is required"));
+                Map<String, String> errorMap = new HashMap<>();
+                errorMap.put("error", "Role is required");
+                return ResponseEntity.badRequest().body(errorMap);
             }
             
             Role role = Role.valueOf(roleName.toUpperCase());
             user.setRole(role);
             return ResponseEntity.ok(userService.save(user));
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid role"));
+            Map<String, String> errorMap = new HashMap<>();
+            errorMap.put("error", "Invalid role");
+            return ResponseEntity.badRequest().body(errorMap);
         }
     }
     
@@ -198,7 +211,9 @@ public class UserController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
                 
         if (!isAdmin) {
-            return ResponseEntity.status(403).body(Map.of("error", "Only administrators can list users by role"));
+            Map<String, String> errorMap = new HashMap<>();
+            errorMap.put("error", "Only administrators can list users by role");
+            return ResponseEntity.status(403).body(errorMap);
         }
         
         try {
@@ -206,7 +221,9 @@ public class UserController {
             List<User> users = userService.findByRole(roleEnum);
             return ResponseEntity.ok(users);
         } catch (IllegalArgumentException e) {
-            return ResponseEntity.badRequest().body(Map.of("error", "Invalid role"));
+            Map<String, String> errorMap = new HashMap<>();
+            errorMap.put("error", "Invalid role");
+            return ResponseEntity.badRequest().body(errorMap);
         }
     }
 } 
