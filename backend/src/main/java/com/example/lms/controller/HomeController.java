@@ -47,9 +47,5 @@ public class HomeController {
         return response;
     }
     
-    // Also handle /api/health
-    @GetMapping("/api/health")
-    public Map<String, Object> apiHealth(HttpServletRequest request) {
-        return health(request);
-    }
+    // Remove duplicate /api/health mapping as it's handled by HealthController
 }

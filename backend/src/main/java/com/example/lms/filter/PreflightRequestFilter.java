@@ -46,23 +46,33 @@ public class PreflightRequestFilter implements Filter {
             System.out.println("Access-Control-Request-Method: " + request.getHeader("Access-Control-Request-Method"));
             System.out.println("Access-Control-Request-Headers: " + request.getHeader("Access-Control-Request-Headers"));
             
-            // Critical path login endpoint
-            if (path.contains("/api/users/login") || path.contains("/users/login") ||
-                path.contains("/api/users/register") || path.contains("/users/register")) {
+            // Handle critical paths with extra priority
+            boolean isCriticalPath = path.contains("/api/users/login") || 
+                                    path.contains("/users/login") ||
+                                    path.contains("/api/users/register") || 
+                                    path.contains("/users/register");
+                
+            if (true) { // Handle all OPTIONS requests, with special attention to critical paths
+                if (isCriticalPath) {
+                    System.out.println("CRITICAL PATH: Authentication endpoint detected");
+                }
                 
                 System.out.println("CRITICAL PATH: Authentication endpoint detected");
                 
-                // Check if the origin is allowed
-                boolean originAllowed = "*".equals(allowedOriginsConfig) || 
+                // Production origin should always be allowed for authentication endpoints
+                boolean isProductionOrigin = origin.equals("https://lmsbeta.onrender.com");
+                boolean isLocalOrigin = origin.equals("http://localhost:3000");
+                boolean originAllowed = isProductionOrigin || isLocalOrigin || 
+                                       "*".equals(allowedOriginsConfig) || 
                                        allowedOriginsConfig.contains(origin);
                 
                 if (originAllowed) {
-                    // Set CORS headers directly
+                    // Set CORS headers directly - always allow critical origins
                     response.setHeader("Access-Control-Allow-Origin", origin);
                     response.setHeader("Access-Control-Allow-Methods", 
-                                       "GET, POST, PUT, DELETE, OPTIONS");
+                                       "GET, POST, PUT, DELETE, OPTIONS, PATCH");
                     response.setHeader("Access-Control-Allow-Headers", 
-                                      "Authorization, Content-Type, X-Requested-With, Origin");
+                                      "Authorization, Content-Type, X-Requested-With, Origin, Accept");
                     response.setHeader("Access-Control-Max-Age", "3600");
                     response.setHeader("Access-Control-Allow-Credentials", "true");
                     

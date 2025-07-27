@@ -26,27 +26,55 @@ public class CorsConfig {
         System.out.println("CORS Configuration initializing");
         System.out.println("Raw allowed origins: " + allowedOrigins);
         
-        // For OPTIONS preflight requests, we need to directly add the production site
+        // First, identify production and local development origins
+        boolean hasWildcard = false;
+        boolean hasProductionOrigin = false;
+        boolean hasLocalOrigin = false;
+        
+        // Start with explicit high priority origins
         config.addAllowedOrigin("https://lmsbeta.onrender.com");
         config.addAllowedOrigin("http://localhost:3000");
-        System.out.println("CORS: Added allowed origins directly");
+        System.out.println("CORS: Added critical origins directly");
+        hasProductionOrigin = true;
+        hasLocalOrigin = true;
         
-        // Also add origins from properties
+        // Also process origins from properties
         if (allowedOrigins == null || allowedOrigins.trim().isEmpty() || "*".equals(allowedOrigins.trim())) {
-            // Wildcard case
-            config.addAllowedOrigin("*");
-            config.setAllowCredentials(false); // Must be false with wildcard origin
-            System.out.println("CORS: Using wildcard origin with allowCredentials=false");
+            // Wildcard case - note that we can't use this with credentials
+            System.out.println("CORS: Wildcard pattern detected in configuration");
+            hasWildcard = true;
         } else {
             // Specific origins case
             String[] origins = allowedOrigins.split(",");
             for (String origin : origins) {
                 String trimmedOrigin = origin.trim();
                 if (!trimmedOrigin.isEmpty()) {
-                    config.addAllowedOrigin(trimmedOrigin);
-                    System.out.println("CORS: Added allowed origin: " + trimmedOrigin);
+                    // Don't add duplicates
+                    if (!"https://lmsbeta.onrender.com".equals(trimmedOrigin) && 
+                        !"http://localhost:3000".equals(trimmedOrigin)) {
+                        config.addAllowedOrigin(trimmedOrigin);
+                        System.out.println("CORS: Added additional allowed origin: " + trimmedOrigin);
+                    }
+                    
+                    if (trimmedOrigin.contains("render.com")) {
+                        hasProductionOrigin = true;
+                    }
+                    if (trimmedOrigin.contains("localhost")) {
+                        hasLocalOrigin = true;
+                    }
                 }
             }
+        }
+        
+        // Set allowCredentials based on our origin configuration
+        // We can only use credentials with specific origins, not with wildcard
+        if (hasWildcard && !hasProductionOrigin && !hasLocalOrigin) {
+            // Only wildcard - can't use credentials
+            config.addAllowedOrigin("*");
+            config.setAllowCredentials(false);
+            System.out.println("CORS: Using wildcard origin with allowCredentials=false");
+        } else {
+            // Specific origins - can use credentials
             config.setAllowCredentials(true);
             System.out.println("CORS: Using specific origins with allowCredentials=true");
         }
