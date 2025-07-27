@@ -20,11 +20,17 @@ public class WebMvcConfig implements WebMvcConfigurer {
         System.out.println("Setting up CORS in WebMvcConfig with allowed origins: " + allowedOrigins);
         
         registry.addMapping("/**")
-            .allowedOrigins("https://lmsbeta.onrender.com", "http://localhost:3000")
+            .allowedOrigins(
+                "https://lmsbeta.onrender.com", 
+                "http://localhost:3000",
+                "https://library-management-system-backend-lms-demo.onrender.com",
+                "https://library-management-system-backend-jlb9.onrender.com"
+            )
             .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD")
             .allowedHeaders("Origin", "Content-Type", "Accept", "Authorization", 
                            "X-Requested-With", "Access-Control-Request-Method", 
-                           "Access-Control-Request-Headers", "Access-Control-Allow-Origin")
+                           "Access-Control-Request-Headers", "Access-Control-Allow-Origin",
+                           "Cache-Control", "Pragma")
             .exposedHeaders("Access-Control-Allow-Origin", "Access-Control-Allow-Methods",
                           "Access-Control-Allow-Headers", "Access-Control-Allow-Credentials", "Authorization")
             .allowCredentials(true)
