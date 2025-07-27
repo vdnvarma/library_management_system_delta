@@ -15,7 +15,7 @@ public class CorsConfig {
     @Value("${cors.allowed-origins:*}")
     private String allowedOrigins;
 
-    @Value("${cors.debug:false}")
+    @Value("${cors.debug:true}")
     private boolean corsDebug;
     
     @Bean
@@ -23,37 +23,49 @@ public class CorsConfig {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         final CorsConfiguration config = new CorsConfiguration();
         
-        // Parse allowed origins from comma-separated string
-        String[] origins = allowedOrigins.split(",");
-        if (origins.length > 0 && !origins[0].equals("*")) {
-            config.setAllowedOrigins(Arrays.asList(origins));
-            if (corsDebug) {
-                System.out.println("CORS - Setting specific allowed origins: " + Arrays.toString(origins));
-            }
-        } else {
+        // For debugging, always output CORS configuration
+        System.out.println("CORS Configuration initializing");
+        System.out.println("Raw allowed origins: " + allowedOrigins);
+        
+        // Handle allowed origins
+        if (allowedOrigins == null || allowedOrigins.trim().isEmpty() || "*".equals(allowedOrigins.trim())) {
+            // Wildcard case
             config.addAllowedOrigin("*");
-            if (corsDebug) {
-                System.out.println("CORS - Allowing all origins (*)");
+            config.setAllowCredentials(false); // Must be false with wildcard origin
+            System.out.println("CORS: Using wildcard origin with allowCredentials=false");
+        } else {
+            // Specific origins case
+            String[] origins = allowedOrigins.split(",");
+            for (String origin : origins) {
+                String trimmedOrigin = origin.trim();
+                if (!trimmedOrigin.isEmpty()) {
+                    config.addAllowedOrigin(trimmedOrigin);
+                    System.out.println("CORS: Added allowed origin: " + trimmedOrigin);
+                }
             }
+            config.setAllowCredentials(true);
+            System.out.println("CORS: Using specific origins with allowCredentials=true");
         }
         
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(Arrays.asList("Origin", "Content-Type", "Accept", "Authorization", 
-                                             "X-Requested-With", "Access-Control-Request-Method", 
-                                             "Access-Control-Request-Headers"));
-        config.setExposedHeaders(Arrays.asList("Access-Control-Allow-Origin", "Access-Control-Allow-Credentials", 
-                                             "Authorization"));
+        // Set allowed methods
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
         
-        // When using specific origins, allowCredentials can be true
-        // When using *, allowCredentials must be false
-        config.setAllowCredentials(!allowedOrigins.contains("*"));
+        // Set allowed headers
+        config.setAllowedHeaders(Collections.singletonList("*"));
+        
+        // Expose headers
+        config.setExposedHeaders(Arrays.asList(
+            "Access-Control-Allow-Origin", 
+            "Access-Control-Allow-Credentials", 
+            "Authorization"
+        ));
         
         config.setMaxAge(3600L);
         
         source.registerCorsConfiguration("/**", config);
         
         if (corsDebug) {
-            System.out.println("CORS Configuration:");
+            System.out.println("CORS Configuration summary:");
             System.out.println("- Allowed origins: " + config.getAllowedOrigins());
             System.out.println("- Allow credentials: " + config.getAllowCredentials());
             System.out.println("- Allowed methods: " + config.getAllowedMethods());

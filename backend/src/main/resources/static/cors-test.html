@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>CORS Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            padding: 20px;
+            max-width: 800px;
+        }
+        button {
+            padding: 10px;
+            margin: 10px 0;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        input {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #response {
+            white-space: pre-wrap;
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CORS Test Tool</h1>
+    
+    <div>
+        <h2>Test Login API</h2>
+        <form id="loginForm">
+            <div>
+                <label for="loginUrl">Login URL:</label>
+                <input type="text" id="loginUrl" value="https://library-management-system-backend-lms-demo.onrender.com/api/users/login" />
+            </div>
+            <div>
+                <label for="username">Username:</label>
+                <input type="text" id="username" value="admin" />
+            </div>
+            <div>
+                <label for="password">Password:</label>
+                <input type="password" id="password" value="admin123" />
+            </div>
+            <button type="button" onclick="testLogin()">Test Login</button>
+            <button type="button" onclick="testLoginWithoutAPI()">Test Login (without /api prefix)</button>
+        </form>
+    </div>
+    
+    <div>
+        <h2>Test CORS Ping</h2>
+        <button onclick="testCors('https://library-management-system-backend-lms-demo.onrender.com/api/debug/ping')">Test CORS Ping</button>
+    </div>
+    
+    <div>
+        <h2>Response:</h2>
+        <pre id="response">Results will appear here...</pre>
+    </div>
+    
+    <script>
+        async function testLogin() {
+            const loginUrl = document.getElementById('loginUrl').value;
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            document.getElementById('response').innerText = `Testing login with ${username}...`;
+            
+            try {
+                const response = await fetch(loginUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('response').innerText = 
+                    `Status: ${response.status}\n\n${JSON.stringify(data, null, 2)}\n\n` +
+                    `Headers received:\n${formatHeaders(response.headers)}`;
+            } catch (error) {
+                document.getElementById('response').innerText = 
+                    `Error: ${error.message}\n\n` +
+                    `This is likely a CORS error. Check the browser console for more details.`;
+                console.error('Login test error:', error);
+            }
+        }
+        
+        async function testLoginWithoutAPI() {
+            const loginUrl = document.getElementById('loginUrl').value.replace('/api', '');
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            
+            document.getElementById('response').innerText = `Testing login without /api prefix: ${loginUrl}...`;
+            
+            try {
+                const response = await fetch(loginUrl, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
+                    body: JSON.stringify({
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('response').innerText = 
+                    `Status: ${response.status}\n\n${JSON.stringify(data, null, 2)}\n\n` +
+                    `Headers received:\n${formatHeaders(response.headers)}`;
+            } catch (error) {
+                document.getElementById('response').innerText = 
+                    `Error: ${error.message}\n\n` +
+                    `This is likely a CORS error. Check the browser console for more details.`;
+                console.error('Login test error:', error);
+            }
+        }
+        
+        async function testCors(url) {
+            document.getElementById('response').innerText = `Testing CORS with ${url}...`;
+            
+            try {
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Origin': window.location.origin
+                    }
+                });
+                
+                const data = await response.text();
+                let jsonData;
+                try {
+                    jsonData = JSON.parse(data);
+                    document.getElementById('response').innerText = 
+                        `Status: ${response.status}\n\n${JSON.stringify(jsonData, null, 2)}\n\n` +
+                        `Headers received:\n${formatHeaders(response.headers)}`;
+                } catch (e) {
+                    document.getElementById('response').innerText = 
+                        `Status: ${response.status}\n\n${data}\n\n` +
+                        `Headers received:\n${formatHeaders(response.headers)}`;
+                }
+            } catch (error) {
+                document.getElementById('response').innerText = 
+                    `Error: ${error.message}\n\n` +
+                    `This is likely a CORS error. Check the browser console for more details.`;
+                console.error('CORS test error:', error);
+            }
+        }
+        
+        function formatHeaders(headers) {
+            let result = '';
+            headers.forEach((value, key) => {
+                result += `${key}: ${value}\n`;
+            });
+            return result;
+        }
+    </script>
+</body>
+</html>
