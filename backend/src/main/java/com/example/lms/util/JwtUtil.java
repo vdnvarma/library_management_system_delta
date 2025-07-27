@@ -9,10 +9,19 @@ import java.util.Date;
 
 @Component
 public class JwtUtil {
-    private final String jwtSecret = System.getenv("JWT_SECRET") != null ? 
-                                   System.getenv("JWT_SECRET") : 
-                                   "mySecretKeymySecretKeymySecretKeymySecretKey"; // 32+ chars
+    private final String jwtSecret;
     private final long jwtExpirationMs = 86400000; // 1 day
+    
+    public JwtUtil() {
+        String envSecret = System.getenv("JWT_SECRET");
+        if (envSecret != null && !envSecret.isEmpty()) {
+            System.out.println("Using JWT secret from environment variable");
+            this.jwtSecret = envSecret;
+        } else {
+            System.out.println("WARNING: Using default JWT secret. Set JWT_SECRET environment variable in production.");
+            this.jwtSecret = "mySecretKeymySecretKeymySecretKeymySecretKey"; // 32+ chars
+        }
+    }
 
     public Key getSigningKey() {
         return Keys.hmacShaKeyFor(jwtSecret.getBytes());
@@ -38,6 +47,7 @@ public class JwtUtil {
             Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(authToken);
             return true;
         } catch (JwtException e) {
+            System.out.println("JWT validation failed: " + e.getMessage());
             return false;
         }
     }

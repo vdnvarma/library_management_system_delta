@@ -35,7 +35,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
-                .requestMatchers("/api/users/login", "/api/users/register").permitAll()
+                .requestMatchers("/api/users/login", "/api/users/register", "/api/health").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/search").permitAll()
                 
                 // Student endpoints (most specific paths first)
