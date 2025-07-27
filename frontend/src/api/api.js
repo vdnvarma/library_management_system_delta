@@ -17,15 +17,16 @@ export function getJwt() {
 export async function login(username, password) {
   console.log("Attempting login for user: " + username);
   
-  // Try both with and without /api prefix
+  // Update this to use the correct backend URL
   const urls = [
     `${API_BASE}/users/login`,
     `${API_BASE}/api/users/login`,
-    // Fallback to direct URL if needed
-    `https://library-management-system-backend-jlb9.onrender.com/api/users/login`
+    // Update this URL to your actual backend URL
+    `https://library-management-system-backend-lms-demo.onrender.com/api/users/login`
   ];
   
   let lastError = null;
+  let lastStatus = null;
   
   // Try each URL until one works
   for (const url of urls) {
@@ -49,6 +50,7 @@ export async function login(username, password) {
       
       if (!res.ok) {
         console.log("Login attempt failed with status: " + res.status);
+        lastStatus = res.status;
         try {
           const errorData = await res.json();
           console.log("Error response:", errorData);
@@ -73,7 +75,17 @@ export async function login(username, password) {
   
   // If we get here, all URLs failed
   console.log("All login attempts failed");
-  return lastError || { error: "Login failed" };
+  
+  // If we got a 401 Unauthorized error, suggest trying the test page
+  if (lastStatus === 401) {
+    return { 
+      error: "Login failed: Username or password incorrect. Use the test page to create or reset your admin user: https://library-management-system-backend-lms-demo.onrender.com/test.html",
+      status: lastStatus
+    };
+  }
+  
+  // If we got a different error or no response, it might be a CORS or connectivity issue
+  return lastError || { error: "Login failed. If this persists, try the test page: https://library-management-system-backend-lms-demo.onrender.com/test.html" };
 }
 
 export async function register(name, username, password) {
