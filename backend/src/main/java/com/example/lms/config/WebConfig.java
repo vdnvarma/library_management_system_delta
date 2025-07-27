@@ -16,15 +16,13 @@ public class WebConfig {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(@org.springframework.lang.NonNull CorsRegistry registry) {
-                // Split the comma-separated list of allowed origins
-                String[] origins = allowedOrigins.split(",");
-                
+                // Allow all origins temporarily for debugging
                 registry.addMapping("/**")
-                        .allowedOrigins(origins)
+                        .allowedOrigins("*") // Allow all origins temporarily for debugging
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .exposedHeaders("Authorization")
-                        .allowCredentials(true)
+                        .allowCredentials(false) // Must be false when using allowedOrigins("*")
                         .maxAge(3600); // 1 hour
             }
         };

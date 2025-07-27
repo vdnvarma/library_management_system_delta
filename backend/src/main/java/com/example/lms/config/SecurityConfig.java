@@ -10,8 +10,12 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.access.channel.ChannelProcessingFilter;
+import org.springframework.web.cors.CorsUtils;
+import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.filter.OncePerRequestFilter;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -26,19 +30,33 @@ public class SecurityConfig {
     @Autowired
     private JwtUtil jwtUtil;
     
-    // CORS configuration is now handled by WebConfig.webCorsConfigurer
+    @Autowired
+    private CorsFilter corsFilter;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configure(http)) // Uses the CORS configuration from WebConfig
+            // Add CORS filter first
+            .addFilterBefore(corsFilter, UsernamePasswordAuthenticationFilter.class)
+            // Configure CORS
+            .cors(cors -> {})
+            // Disable CSRF for API
             .csrf(csrf -> csrf.disable())
+            // Configure authorization
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints
-                .requestMatchers("/api/users/login", "/api/users/register", "/api/health").permitAll()
-                .requestMatchers("/api/debug/**", "/debug/**").permitAll() // Debug endpoints
-                .requestMatchers("/users/login", "/users/register").permitAll() // Alternative paths without /api prefix
-                .requestMatchers(HttpMethod.GET, "/api/books", "/api/books/search").permitAll()
+                // Public endpoints (both with and without /api prefix)
+                .requestMatchers(
+                    "/api/users/login", "/users/login",
+                    "/api/users/register", "/users/register",
+                    "/api/health", "/health",
+                    "/api/debug/**", "/debug/**",
+                    "/api/test/**", "/test/**"
+                ).permitAll()
+                // Public GET endpoints
+                .requestMatchers(HttpMethod.GET, 
+                    "/api/books", "/books",
+                    "/api/books/search", "/books/search"
+                ).permitAll()
                 
                 // Student endpoints (most specific paths first)
                 .requestMatchers(HttpMethod.POST, "/api/issues/issue").hasAnyRole("ADMIN", "LIBRARIAN", "STUDENT")
@@ -78,14 +96,22 @@ public class SecurityConfig {
                 throws ServletException, IOException {
             String header = request.getHeader("Authorization");
             
-            // For debugging purposes - print the path being accessed
+            // For debugging purposes - print detailed request info
             String path = request.getServletPath();
-            System.out.println("Request path: " + path);
+            String method = request.getMethod();
+            String origin = request.getHeader("Origin");
+            System.out.println("Request: " + method + " " + path + " from origin: " + origin);
+            System.out.println("Auth header: " + (header != null ? "present" : "absent"));
             
-            // CORS headers are now handled by Spring Security's CORS configuration
+            // Always add CORS headers for better browser compatibility
+            response.setHeader("Access-Control-Allow-Origin", "*");
+            response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            response.setHeader("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Requested-With");
+            response.setHeader("Access-Control-Max-Age", "3600");
             
             // For preflight requests - let Spring handle OPTIONS requests
-            if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            if ("OPTIONS".equalsIgnoreCase(method)) {
+                response.setStatus(HttpServletResponse.SC_OK);
                 filterChain.doFilter(request, response);
                 return;
             }
@@ -119,11 +145,17 @@ public class SecurityConfig {
                     }
                 }
             } else {
-                // Only log for non-public paths to reduce noise
-                if (!path.equals("/api/health") && !path.equals("/api/users/login") && 
-                    !path.equals("/api/users/register") && !path.startsWith("/api/books/search") &&
-                    !path.equals("/api/books")) {
-                    System.out.println("No Authorization header found for path: " + path);
+                // Check if this is a public endpoint that doesn't need authentication
+                boolean isPublicEndpoint = 
+                    path.equals("/api/health") || path.equals("/health") ||
+                    path.equals("/api/users/login") || path.equals("/users/login") ||
+                    path.equals("/api/users/register") || path.equals("/users/register") ||
+                    path.startsWith("/api/books/search") || path.startsWith("/books/search") ||
+                    path.equals("/api/books") || path.equals("/books") ||
+                    path.startsWith("/api/debug") || path.startsWith("/debug");
+                
+                if (!isPublicEndpoint) {
+                    System.out.println("No Authorization header found for protected path: " + path);
                 }
             }
             filterChain.doFilter(request, response);

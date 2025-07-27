@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        button {
+            padding: 10px;
+            margin: 5px;
+        }
+        pre {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <h1>API Test</h1>
+    
+    <div>
+        <h2>Test Endpoints</h2>
+        <button onclick="testEndpoint('/api/test/public')">Test Public Endpoint</button>
+        <button onclick="testEndpoint('/api/health')">Test Health Endpoint</button>
+        <button onclick="testLoginEndpoint()">Test Login Endpoint</button>
+    </div>
+    
+    <div>
+        <h2>API Response:</h2>
+        <pre id="response">Response will appear here...</pre>
+    </div>
+
+    <script>
+        const baseUrl = 'https://library-management-system-backend-jlb9.onrender.com';
+        
+        async function testEndpoint(endpoint) {
+            document.getElementById('response').innerText = 'Loading...';
+            try {
+                const response = await fetch(`${baseUrl}${endpoint}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    }
+                });
+                
+                const result = await response.json();
+                document.getElementById('response').innerText = 
+                    `Status: ${response.status}\n\n${JSON.stringify(result, null, 2)}`;
+            } catch (error) {
+                document.getElementById('response').innerText = 
+                    `Error: ${error.message}`;
+            }
+        }
+        
+        async function testLoginEndpoint() {
+            document.getElementById('response').innerText = 'Loading...';
+            try {
+                const response = await fetch(`${baseUrl}/api/test/login-test`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Origin': window.location.origin
+                    },
+                    body: JSON.stringify({
+                        username: 'testuser',
+                        password: 'testpassword'
+                    })
+                });
+                
+                const result = await response.json();
+                document.getElementById('response').innerText = 
+                    `Status: ${response.status}\n\n${JSON.stringify(result, null, 2)}`;
+            } catch (error) {
+                document.getElementById('response').innerText = 
+                    `Error: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>

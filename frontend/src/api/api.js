@@ -16,41 +16,64 @@ export function getJwt() {
 // Public endpoints
 export async function login(username, password) {
   console.log("Attempting login for user: " + username);
-  const url = `${API_BASE}/users/login`;
-  console.log("Login request URL:", url);
   
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { 
-        "Content-Type": "application/json",
-        // Add this to help with debugging CORS
-        "X-Requested-With": "XMLHttpRequest"
-      },
-      body: JSON.stringify({ username, password }),
-    });
+  // Try both with and without /api prefix
+  const urls = [
+    `${API_BASE}/users/login`,
+    `${API_BASE}/api/users/login`,
+    // Fallback to direct URL if needed
+    `https://library-management-system-backend-jlb9.onrender.com/api/users/login`
+  ];
+  
+  let lastError = null;
+  
+  // Try each URL until one works
+  for (const url of urls) {
+    console.log("Trying login URL:", url);
     
-    console.log("Login response status:", res.status);
-    
-    if (!res.ok) {
-      console.log("Login failed with status: " + res.status);
-      try {
-        // Try to read the error response body if available
-        const errorData = await res.json();
-        console.log("Error response:", errorData);
-        return { error: errorData.error || "Login failed", status: res.status };
-      } catch (e) {
-        return { error: "Login failed", status: res.status };
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          // Add this to help with debugging CORS
+          "X-Requested-With": "XMLHttpRequest"
+        },
+        body: JSON.stringify({ username, password }),
+        // Explicitly set credentials mode to omit cookies
+        // which can help with CORS issues
+        credentials: 'omit'
+      });
+      
+      console.log(`Login response from ${url}: status ${res.status}`);
+      
+      if (!res.ok) {
+        console.log("Login attempt failed with status: " + res.status);
+        try {
+          const errorData = await res.json();
+          console.log("Error response:", errorData);
+          lastError = { error: errorData.error || "Login failed", status: res.status };
+          // Continue to next URL
+        } catch (e) {
+          lastError = { error: "Login failed", status: res.status };
+          // Continue to next URL
+        }
+      } else {
+        // Success! Return the data
+        const data = await res.json();
+        console.log("Login successful, token received: " + (data.token ? "yes" : "no"));
+        return data;
       }
+    } catch (error) {
+      console.error(`Login request to ${url} error:`, error);
+      lastError = { error: "Network or CORS error", details: error.message };
+      // Continue to next URL
     }
-    
-    const data = await res.json();
-    console.log("Login successful, token received: " + (data.token ? "yes" : "no"));
-    return data;
-  } catch (error) {
-    console.error("Login request error:", error);
-    return { error: "Network or CORS error", details: error.message };
   }
+  
+  // If we get here, all URLs failed
+  console.log("All login attempts failed");
+  return lastError || { error: "Login failed" };
 }
 
 export async function register(name, username, password) {
