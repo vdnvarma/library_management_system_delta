@@ -31,36 +31,62 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user) {
-        System.out.println("Login request received for username: " + user.getUsername());
-        
-        Optional<User> userFound = userService.findByUsername(user.getUsername());
-        boolean userExists = userFound.isPresent();
-        System.out.println("User found in database: " + userExists);
-        
-        boolean passwordMatch = false;
-        if (userExists) {
-            passwordMatch = userFound.get().getPassword().equals(user.getPassword());
-            System.out.println("Password match: " + passwordMatch);
-            System.out.println("Input password: " + user.getPassword() + ", Stored password: " + userFound.get().getPassword());
-        }
-        
-        if (userExists && passwordMatch) {
-            String token = jwtUtil.generateToken(userFound.get().getUsername(), userFound.get().getRole().name());
-            Map<String, Object> responseMap = new HashMap<>();
-            responseMap.put("id", userFound.get().getId());
-            responseMap.put("name", userFound.get().getName());
-            responseMap.put("username", userFound.get().getUsername());
-            responseMap.put("role", userFound.get().getRole());
-            responseMap.put("token", token);
-            System.out.println("Login successful for user: " + user.getUsername());
-            return ResponseEntity.ok(responseMap);
-        } else {
-            Map<String, String> errorMap = new HashMap<>();
-            errorMap.put("error", "Invalid credentials");
-            System.out.println("Login failed for user: " + user.getUsername() + 
-                              " - User exists: " + userExists + 
-                              " - Password match: " + passwordMatch);
-            return ResponseEntity.status(401).body(errorMap);
+        try {
+            // Check for null values in request
+            if (user == null) {
+                System.out.println("ERROR: Null user object received in login request");
+                return ResponseEntity.badRequest().body(Map.of("error", "Missing user data"));
+            }
+            
+            if (user.getUsername() == null || user.getUsername().trim().isEmpty()) {
+                System.out.println("ERROR: Empty username received in login request");
+                return ResponseEntity.badRequest().body(Map.of("error", "Username is required"));
+            }
+            
+            System.out.println("Login request received for username: " + user.getUsername());
+            
+            Optional<User> userFound = userService.findByUsername(user.getUsername());
+            boolean userExists = userFound.isPresent();
+            System.out.println("User found in database: " + userExists);
+            
+            boolean passwordMatch = false;
+            if (userExists) {
+                if (user.getPassword() == null) {
+                    System.out.println("ERROR: Null password received for user: " + user.getUsername());
+                    return ResponseEntity.badRequest().body(Map.of("error", "Password is required"));
+                }
+                
+                passwordMatch = userFound.get().getPassword().equals(user.getPassword());
+                System.out.println("Password match: " + passwordMatch);
+                System.out.println("Input password: " + user.getPassword() + ", Stored password: " + userFound.get().getPassword());
+            }
+            
+            if (userExists && passwordMatch) {
+                String token = jwtUtil.generateToken(userFound.get().getUsername(), userFound.get().getRole().name());
+                Map<String, Object> responseMap = new HashMap<>();
+                responseMap.put("id", userFound.get().getId());
+                responseMap.put("name", userFound.get().getName());
+                responseMap.put("username", userFound.get().getUsername());
+                responseMap.put("role", userFound.get().getRole());
+                responseMap.put("token", token);
+                System.out.println("Login successful for user: " + user.getUsername());
+                return ResponseEntity.ok(responseMap);
+            } else {
+                Map<String, String> errorMap = new HashMap<>();
+                errorMap.put("error", "Invalid credentials");
+                System.out.println("Login failed for user: " + user.getUsername() + 
+                                " - User exists: " + userExists + 
+                                " - Password match: " + passwordMatch);
+                return ResponseEntity.status(401).body(errorMap);
+            }
+        } catch (Exception e) {
+            System.out.println("ERROR: Exception in login: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(Map.of(
+                "error", "Internal server error", 
+                "message", e.getMessage(),
+                "type", e.getClass().getName()
+            ));
         }
     }
     

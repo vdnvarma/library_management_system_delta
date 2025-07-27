@@ -55,26 +55,37 @@ public class PreflightRequestFilter implements Filter {
             if (true) { // Handle all OPTIONS requests, with special attention to critical paths
                 if (isCriticalPath) {
                     System.out.println("CRITICAL PATH: Authentication endpoint detected");
+                } else {
+                    System.out.println("Processing preflight for standard endpoint");
                 }
                 
-                System.out.println("CRITICAL PATH: Authentication endpoint detected");
-                
-                // Production origin should always be allowed for authentication endpoints
-                boolean isProductionOrigin = origin.equals("https://lmsbeta.onrender.com");
+                // Always allow critical origins
+                boolean isProductionFrontend = origin.equals("https://lmsbeta.onrender.com");
                 boolean isLocalOrigin = origin.equals("http://localhost:3000");
-                boolean originAllowed = isProductionOrigin || isLocalOrigin || 
+                boolean isBackendOrigin = origin.contains("library-management-system-backend") && origin.contains("onrender.com");
+                
+                // Always allow these critical origins, regardless of configuration
+                boolean originAllowed = isProductionFrontend || isLocalOrigin || isBackendOrigin ||
                                        "*".equals(allowedOriginsConfig) || 
                                        allowedOriginsConfig.contains(origin);
+                
+                System.out.println("Origin check: " + origin + " allowed? " + originAllowed + 
+                                 " (production frontend? " + isProductionFrontend + 
+                                 ", local? " + isLocalOrigin + 
+                                 ", backend origin? " + isBackendOrigin + ")");
                 
                 if (originAllowed) {
                     // Set CORS headers directly - always allow critical origins
                     response.setHeader("Access-Control-Allow-Origin", origin);
                     response.setHeader("Access-Control-Allow-Methods", 
-                                       "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+                                       "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD");
                     response.setHeader("Access-Control-Allow-Headers", 
-                                      "Authorization, Content-Type, X-Requested-With, Origin, Accept");
+                                      "Authorization, Content-Type, X-Requested-With, Origin, Accept, " +
+                                      "Access-Control-Request-Method, Access-Control-Request-Headers, " + 
+                                      "Cache-Control, Pragma");
                     response.setHeader("Access-Control-Max-Age", "3600");
                     response.setHeader("Access-Control-Allow-Credentials", "true");
+                    response.setHeader("Vary", "Origin, Access-Control-Request-Method, Access-Control-Request-Headers");
                     
                     // Return 200 OK status
                     response.setStatus(HttpServletResponse.SC_OK);

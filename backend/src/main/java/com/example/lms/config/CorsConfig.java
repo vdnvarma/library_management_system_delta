@@ -32,8 +32,16 @@ public class CorsConfig {
         boolean hasLocalOrigin = false;
         
         // Start with explicit high priority origins
+        // =================== IMPORTANT: Production Frontend ===================
         config.addAllowedOrigin("https://lmsbeta.onrender.com");
+        
+        // For development
         config.addAllowedOrigin("http://localhost:3000");
+        
+        // For testing across different backend instances
+        config.addAllowedOrigin("https://library-management-system-backend-lms-demo.onrender.com");
+        config.addAllowedOrigin("https://library-management-system-backend-jlb9.onrender.com");
+        
         System.out.println("CORS: Added critical origins directly");
         hasProductionOrigin = true;
         hasLocalOrigin = true;
@@ -91,7 +99,9 @@ public class CorsConfig {
             "X-Requested-With",
             "Access-Control-Request-Method",
             "Access-Control-Request-Headers",
-            "Access-Control-Allow-Origin"
+            "Access-Control-Allow-Origin",
+            "Cache-Control",
+            "Pragma"
         ));
         
         // Expose headers
@@ -100,6 +110,7 @@ public class CorsConfig {
             "Access-Control-Allow-Methods",
             "Access-Control-Allow-Headers",
             "Access-Control-Allow-Credentials", 
+            "Access-Control-Max-Age",
             "Authorization"
         ));
         
