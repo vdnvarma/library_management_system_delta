@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>LMS API Tester</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        h1, h2 {
+            color: #333;
+        }
+        .endpoint {
+            margin-bottom: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            margin-right: 10px;
+        }
+        input[type="text"], select {
+            padding: 8px;
+            margin: 5px 0;
+            width: 300px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow: auto;
+            max-height: 300px;
+        }
+        .panel {
+            margin-bottom: 20px;
+        }
+        .success {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+        .error {
+            color: #f44336;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <h1>Library Management System API Tester</h1>
+    <p>Use this page to test API endpoints and diagnose issues</p>
+    
+    <div class="panel">
+        <h2>API Base URL</h2>
+        <input type="text" id="apiBase" value="https://library-management-system-backend-jlb9.onrender.com" style="width: 80%">
+    </div>
+    
+    <div class="panel">
+        <h2>Authentication</h2>
+        <div class="endpoint">
+            <h3>Login</h3>
+            <div>
+                <input type="text" id="loginUsername" placeholder="Username" value="admin">
+                <input type="password" id="loginPassword" placeholder="Password" value="admin123">
+                <button onclick="login()">Login</button>
+            </div>
+            <p>Token: <span id="jwtToken">None</span></p>
+            <div>
+                <pre id="loginResponse"></pre>
+            </div>
+        </div>
+    </div>
+    
+    <div class="panel">
+        <h2>Book Endpoints</h2>
+        <div class="endpoint">
+            <h3>Get All Books</h3>
+            <div>
+                <button onclick="getBooks('/api/books')">Get Books (with /api)</button>
+                <button onclick="getBooks('/books')">Get Books (without /api)</button>
+            </div>
+            <div>
+                <pre id="booksResponse"></pre>
+            </div>
+        </div>
+        
+        <div class="endpoint">
+            <h3>Search Books</h3>
+            <div>
+                <input type="text" id="searchQuery" placeholder="Search query">
+                <button onclick="searchBooks('/api/books/search')">Search (with /api)</button>
+                <button onclick="searchBooks('/books/search')">Search (without /api)</button>
+            </div>
+            <div>
+                <pre id="searchResponse"></pre>
+            </div>
+        </div>
+    </div>
+    
+    <div class="panel">
+        <h2>Issue Endpoints</h2>
+        <div class="endpoint">
+            <h3>Get User Issues</h3>
+            <div>
+                <input type="text" id="userIdIssues" placeholder="User ID" value="1">
+                <button onclick="getUserIssues('/api/issues/user/')">Get Issues (with /api)</button>
+                <button onclick="getUserIssues('/issues/user/')">Get Issues (without /api)</button>
+            </div>
+            <div>
+                <pre id="issuesResponse"></pre>
+            </div>
+        </div>
+    </div>
+    
+    <div class="panel">
+        <h2>Reservation Endpoints</h2>
+        <div class="endpoint">
+            <h3>Get User Reservations</h3>
+            <div>
+                <input type="text" id="userIdReservations" placeholder="User ID" value="1">
+                <button onclick="getUserReservations('/api/reservations/user/')">Get Reservations (with /api)</button>
+                <button onclick="getUserReservations('/reservations/user/')">Get Reservations (without /api)</button>
+            </div>
+            <div>
+                <pre id="reservationsResponse"></pre>
+            </div>
+        </div>
+        
+        <div class="endpoint">
+            <h3>Reserve Book</h3>
+            <div>
+                <input type="text" id="bookIdReserve" placeholder="Book ID" value="1">
+                <input type="text" id="userIdReserve" placeholder="User ID" value="1">
+                <button onclick="reserveBook('/api/reservations/reserve')">Reserve (with /api)</button>
+                <button onclick="reserveBook('/reservations/reserve')">Reserve (without /api)</button>
+            </div>
+            <div>
+                <pre id="reserveResponse"></pre>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let token = localStorage.getItem('jwt') || '';
+        document.getElementById('jwtToken').textContent = token ? token.substring(0, 10) + '...' : 'None';
+        
+        function getApiBase() {
+            return document.getElementById('apiBase').value.trim();
+        }
+        
+        function showResponse(elementId, data, isError = false) {
+            const element = document.getElementById(elementId);
+            if (typeof data === 'object') {
+                element.textContent = JSON.stringify(data, null, 2);
+            } else {
+                element.textContent = data;
+            }
+            element.className = isError ? 'error' : 'success';
+        }
+        
+        async function login() {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            const apiBase = getApiBase();
+            
+            try {
+                const response = await fetch(`${apiBase}/api/users/login`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok && data.token) {
+                    token = data.token;
+                    localStorage.setItem('jwt', token);
+                    document.getElementById('jwtToken').textContent = token.substring(0, 10) + '...';
+                    showResponse('loginResponse', data);
+                } else {
+                    showResponse('loginResponse', data, true);
+                }
+            } catch (error) {
+                showResponse('loginResponse', { error: error.message }, true);
+                
+                // Try alternative endpoint
+                try {
+                    const response = await fetch(`${apiBase}/users/login`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok && data.token) {
+                        token = data.token;
+                        localStorage.setItem('jwt', token);
+                        document.getElementById('jwtToken').textContent = token.substring(0, 10) + '...';
+                        showResponse('loginResponse', {
+                            ...data,
+                            message: "Login succeeded with alternative endpoint"
+                        });
+                    } else {
+                        showResponse('loginResponse', {
+                            ...data,
+                            alternative_endpoint_tried: true
+                        }, true);
+                    }
+                } catch (altError) {
+                    showResponse('loginResponse', {
+                        original_error: error.message,
+                        alternative_error: altError.message
+                    }, true);
+                }
+            }
+        }
+        
+        async function getBooks(endpoint) {
+            const apiBase = getApiBase();
+            try {
+                const response = await fetch(`${apiBase}${endpoint}`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                
+                const data = await response.json();
+                showResponse('booksResponse', {
+                    endpoint: `${apiBase}${endpoint}`,
+                    status: response.status,
+                    data
+                });
+            } catch (error) {
+                showResponse('booksResponse', {
+                    endpoint: `${apiBase}${endpoint}`,
+                    error: error.message
+                }, true);
+            }
+        }
+        
+        async function searchBooks(endpoint) {
+            const apiBase = getApiBase();
+            const query = document.getElementById('searchQuery').value;
+            
+            try {
+                const response = await fetch(`${apiBase}${endpoint}?query=${encodeURIComponent(query)}`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                
+                const data = await response.json();
+                showResponse('searchResponse', {
+                    endpoint: `${apiBase}${endpoint}?query=${query}`,
+                    status: response.status,
+                    data
+                });
+            } catch (error) {
+                showResponse('searchResponse', {
+                    endpoint: `${apiBase}${endpoint}?query=${query}`,
+                    error: error.message
+                }, true);
+            }
+        }
+        
+        async function getUserIssues(endpoint) {
+            const apiBase = getApiBase();
+            const userId = document.getElementById('userIdIssues').value;
+            
+            try {
+                const response = await fetch(`${apiBase}${endpoint}${userId}`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                
+                const data = await response.json();
+                showResponse('issuesResponse', {
+                    endpoint: `${apiBase}${endpoint}${userId}`,
+                    status: response.status,
+                    data
+                });
+            } catch (error) {
+                showResponse('issuesResponse', {
+                    endpoint: `${apiBase}${endpoint}${userId}`,
+                    error: error.message
+                }, true);
+            }
+        }
+        
+        async function getUserReservations(endpoint) {
+            const apiBase = getApiBase();
+            const userId = document.getElementById('userIdReservations').value;
+            
+            try {
+                const response = await fetch(`${apiBase}${endpoint}${userId}`, {
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                
+                const data = await response.json();
+                showResponse('reservationsResponse', {
+                    endpoint: `${apiBase}${endpoint}${userId}`,
+                    status: response.status,
+                    data
+                });
+            } catch (error) {
+                showResponse('reservationsResponse', {
+                    endpoint: `${apiBase}${endpoint}${userId}`,
+                    error: error.message
+                }, true);
+            }
+        }
+        
+        async function reserveBook(endpoint) {
+            const apiBase = getApiBase();
+            const bookId = document.getElementById('bookIdReserve').value;
+            const userId = document.getElementById('userIdReserve').value;
+            
+            try {
+                const response = await fetch(`${apiBase}${endpoint}?bookId=${bookId}&userId=${userId}`, {
+                    method: 'POST',
+                    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+                });
+                
+                const data = await response.json();
+                showResponse('reserveResponse', {
+                    endpoint: `${apiBase}${endpoint}?bookId=${bookId}&userId=${userId}`,
+                    status: response.status,
+                    data
+                });
+            } catch (error) {
+                showResponse('reserveResponse', {
+                    endpoint: `${apiBase}${endpoint}?bookId=${bookId}&userId=${userId}`,
+                    error: error.message
+                }, true);
+            }
+        }
+    </script>
+</body>
+</html>

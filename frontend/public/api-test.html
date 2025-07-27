@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS API Testing Utility</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        .container {
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .response {
+            margin-top: 20px;
+        }
+        .api-test {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .with-api {
+            border-left: 5px solid #3498db;
+        }
+        .without-api {
+            border-left: 5px solid #e74c3c;
+        }
+        .test-label {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 3px;
+            color: white;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+        .with-api-label {
+            background-color: #3498db;
+        }
+        .without-api-label {
+            background-color: #e74c3c;
+        }
+        .endpoints {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+        .endpoint {
+            border: 1px solid #ddd;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <h1>LMS API Testing Utility</h1>
+    
+    <div class="container">
+        <h2>API Base URL Configuration</h2>
+        <div class="form-group">
+            <label for="baseUrl">Base URL (without /api)</label>
+            <input type="text" id="baseUrl" value="http://localhost:8080" />
+        </div>
+        <div class="form-group">
+            <button onclick="saveBaseUrl()">Save Base URL</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>Authentication</h2>
+        <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" placeholder="Enter username" />
+        </div>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="Enter password" />
+        </div>
+        <div class="form-group">
+            <button onclick="login()">Login</button>
+        </div>
+        <div id="loginResponse" class="response"></div>
+    </div>
+
+    <div class="container">
+        <h2>Test API Endpoints</h2>
+        <p>The tests below will help you verify if the API endpoints work with and without the /api prefix</p>
+
+        <div class="endpoints">
+            <div class="endpoint">
+                <h3>Get All Books</h3>
+                <button onclick="testBooks()">Test Books Endpoints</button>
+                <div id="booksResponse" class="response"></div>
+            </div>
+
+            <div class="endpoint">
+                <h3>Book Search</h3>
+                <div class="form-group">
+                    <label for="searchType">Search Type</label>
+                    <select id="searchType">
+                        <option value="title">Title</option>
+                        <option value="author">Author</option>
+                        <option value="isbn">ISBN</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="searchKeyword">Keyword</label>
+                    <input type="text" id="searchKeyword" placeholder="Enter search term" />
+                </div>
+                <button onclick="testBookSearch()">Test Search Endpoints</button>
+                <div id="searchResponse" class="response"></div>
+            </div>
+
+            <div class="endpoint">
+                <h3>User Issues</h3>
+                <div class="form-group">
+                    <label for="userIdIssues">User ID</label>
+                    <input type="text" id="userIdIssues" placeholder="Enter user ID" />
+                </div>
+                <button onclick="testUserIssues()">Test User Issues</button>
+                <div id="issuesResponse" class="response"></div>
+            </div>
+
+            <div class="endpoint">
+                <h3>User Reservations</h3>
+                <div class="form-group">
+                    <label for="userIdReservations">User ID</label>
+                    <input type="text" id="userIdReservations" placeholder="Enter user ID" />
+                </div>
+                <button onclick="testUserReservations()">Test User Reservations</button>
+                <div id="reservationsResponse" class="response"></div>
+            </div>
+
+            <div class="endpoint">
+                <h3>Reserve Book</h3>
+                <div class="form-group">
+                    <label for="bookIdReserve">Book ID</label>
+                    <input type="text" id="bookIdReserve" placeholder="Enter book ID" />
+                </div>
+                <div class="form-group">
+                    <label for="userIdReserve">User ID</label>
+                    <input type="text" id="userIdReserve" placeholder="Enter user ID" />
+                </div>
+                <button onclick="testReserveBook()">Test Reserve Book</button>
+                <div id="reserveResponse" class="response"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store token
+        let token = localStorage.getItem('jwt');
+        let baseUrl = localStorage.getItem('baseUrl') || 'http://localhost:8080';
+        
+        // Update UI with stored values
+        document.getElementById('baseUrl').value = baseUrl;
+        
+        function saveBaseUrl() {
+            baseUrl = document.getElementById('baseUrl').value.trim();
+            localStorage.setItem('baseUrl', baseUrl);
+            alert('Base URL saved: ' + baseUrl);
+        }
+        
+        // Authentication headers
+        function getAuthHeaders() {
+            return token ? { 'Authorization': 'Bearer ' + token } : {};
+        }
+        
+        // Login function
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const responseElement = document.getElementById('loginResponse');
+            
+            if (!username || !password) {
+                responseElement.innerHTML = '<p class="error">Please enter username and password</p>';
+                return;
+            }
+            
+            responseElement.innerHTML = '<p>Attempting login...</p>';
+            
+            // Try with and without API prefix
+            const urls = [
+                `${baseUrl}/users/login`,
+                `${baseUrl}/api/users/login`
+            ];
+            
+            let lastError = null;
+            
+            // Try each URL until one works
+            for (const url of urls) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, password })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (response.ok && data.token) {
+                        token = data.token;
+                        localStorage.setItem('jwt', token);
+                        
+                        responseElement.innerHTML = `
+                            <p class="success">Login successful!</p>
+                            <p>User: ${data.username || 'N/A'}</p>
+                            <p>Role: ${data.role || 'N/A'}</p>
+                            <p>Token: ${token ? token.substring(0, 20) + '...' : 'None'}</p>
+                        `;
+                        return;
+                    } else {
+                        lastError = data.error || 'Login failed';
+                    }
+                } catch (error) {
+                    console.error(`Error with ${url}:`, error);
+                    lastError = error.message;
+                }
+            }
+            
+            responseElement.innerHTML = `<p class="error">Login failed: ${lastError}</p>`;
+        }
+
+        // Test API endpoints
+        async function testEndpoint(endpoint, withApi = true) {
+            try {
+                const url = withApi ? 
+                    `${baseUrl}/api${endpoint}` : 
+                    `${baseUrl}${endpoint}`;
+                
+                const response = await fetch(url, {
+                    headers: getAuthHeaders()
+                });
+                
+                const data = await response.json();
+                return { 
+                    ok: response.ok,
+                    status: response.status,
+                    data,
+                    error: !response.ok ? (data.error || 'Request failed') : null
+                };
+            } catch (error) {
+                console.error(`Error with ${endpoint}:`, error);
+                return { 
+                    ok: false,
+                    status: 0,
+                    data: null,
+                    error: error.message 
+                };
+            }
+        }
+        
+        function displayResponse(elementId, withApiResult, withoutApiResult) {
+            const element = document.getElementById(elementId);
+            
+            element.innerHTML = `
+                <div class="api-test with-api">
+                    <h4>
+                        <span class="test-label with-api-label">WITH /api</span>
+                        Status: ${withApiResult.ok ? 
+                            `<span class="success">${withApiResult.status} OK</span>` : 
+                            `<span class="error">${withApiResult.status} Failed</span>`}
+                    </h4>
+                    ${withApiResult.error ? 
+                        `<p class="error">Error: ${withApiResult.error}</p>` : 
+                        ''}
+                    <pre>${JSON.stringify(withApiResult.data, null, 2)}</pre>
+                </div>
+                
+                <div class="api-test without-api">
+                    <h4>
+                        <span class="test-label without-api-label">WITHOUT /api</span>
+                        Status: ${withoutApiResult.ok ? 
+                            `<span class="success">${withoutApiResult.status} OK</span>` : 
+                            `<span class="error">${withoutApiResult.status} Failed</span>`}
+                    </h4>
+                    ${withoutApiResult.error ? 
+                        `<p class="error">Error: ${withoutApiResult.error}</p>` : 
+                        ''}
+                    <pre>${JSON.stringify(withoutApiResult.data, null, 2)}</pre>
+                </div>
+            `;
+        }
+        
+        // Test books endpoints
+        async function testBooks() {
+            const withApiResult = await testEndpoint('/books', true);
+            const withoutApiResult = await testEndpoint('/books', false);
+            
+            displayResponse('booksResponse', withApiResult, withoutApiResult);
+        }
+        
+        // Test search endpoints
+        async function testBookSearch() {
+            const type = document.getElementById('searchType').value;
+            const keyword = document.getElementById('searchKeyword').value;
+            
+            if (!keyword) {
+                document.getElementById('searchResponse').innerHTML = '<p class="error">Please enter a search keyword</p>';
+                return;
+            }
+            
+            const endpoint = `/books/search?type=${type}&keyword=${keyword}`;
+            
+            const withApiResult = await testEndpoint(endpoint, true);
+            const withoutApiResult = await testEndpoint(endpoint, false);
+            
+            displayResponse('searchResponse', withApiResult, withoutApiResult);
+        }
+        
+        // Test user issues
+        async function testUserIssues() {
+            const userId = document.getElementById('userIdIssues').value;
+            
+            if (!userId) {
+                document.getElementById('issuesResponse').innerHTML = '<p class="error">Please enter a user ID</p>';
+                return;
+            }
+            
+            const endpoint = `/issues/user/${userId}`;
+            
+            const withApiResult = await testEndpoint(endpoint, true);
+            const withoutApiResult = await testEndpoint(endpoint, false);
+            
+            displayResponse('issuesResponse', withApiResult, withoutApiResult);
+        }
+        
+        // Test user reservations
+        async function testUserReservations() {
+            const userId = document.getElementById('userIdReservations').value;
+            
+            if (!userId) {
+                document.getElementById('reservationsResponse').innerHTML = '<p class="error">Please enter a user ID</p>';
+                return;
+            }
+            
+            const endpoint = `/reservations/user/${userId}`;
+            
+            const withApiResult = await testEndpoint(endpoint, true);
+            const withoutApiResult = await testEndpoint(endpoint, false);
+            
+            displayResponse('reservationsResponse', withApiResult, withoutApiResult);
+        }
+        
+        // Test reserve book
+        async function testReserveBook() {
+            const bookId = document.getElementById('bookIdReserve').value;
+            const userId = document.getElementById('userIdReserve').value;
+            
+            if (!bookId || !userId) {
+                document.getElementById('reserveResponse').innerHTML = '<p class="error">Please enter both book ID and user ID</p>';
+                return;
+            }
+            
+            const endpoint = `/reservations/reserve?bookId=${bookId}&userId=${userId}`;
+            
+            // For POST requests
+            async function testPostEndpoint(endpoint, withApi = true) {
+                try {
+                    const url = withApi ? 
+                        `${baseUrl}/api${endpoint}` : 
+                        `${baseUrl}${endpoint}`;
+                    
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: getAuthHeaders()
+                    });
+                    
+                    const data = await response.json();
+                    return { 
+                        ok: response.ok,
+                        status: response.status,
+                        data,
+                        error: !response.ok ? (data.error || 'Request failed') : null
+                    };
+                } catch (error) {
+                    console.error(`Error with ${endpoint}:`, error);
+                    return { 
+                        ok: false,
+                        status: 0,
+                        data: null,
+                        error: error.message 
+                    };
+                }
+            }
+            
+            const withApiResult = await testPostEndpoint(endpoint, true);
+            const withoutApiResult = await testPostEndpoint(endpoint, false);
+            
+            displayResponse('reserveResponse', withApiResult, withoutApiResult);
+        }
+    </script>
+</body>
+</html>
