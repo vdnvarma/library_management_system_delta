@@ -30,18 +30,26 @@ public class UserController {
 
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody User user) {
+        System.out.println("Login attempt for user: " + user.getUsername());
+        
         Optional<User> found = userService.findByUsername(user.getUsername())
             .filter(u -> u.getPassword().equals(user.getPassword()));
+            
         if (found.isPresent()) {
             String token = jwtUtil.generateToken(found.get().getUsername(), found.get().getRole().name());
-            return ResponseEntity.ok(Map.of(
-                "id", found.get().getId(),
-                "name", found.get().getName(),
-                "username", found.get().getUsername(),
-                "role", found.get().getRole(),
-                "token", token
-            ));
+            System.out.println("Login successful for user: " + user.getUsername() + " with role: " + found.get().getRole().name());
+            System.out.println("Generated token length: " + token.length());
+            
+            Map<String, Object> responseMap = new HashMap<>();
+            responseMap.put("id", found.get().getId());
+            responseMap.put("name", found.get().getName());
+            responseMap.put("username", found.get().getUsername());
+            responseMap.put("role", found.get().getRole());
+            responseMap.put("token", token);
+            
+            return ResponseEntity.ok(responseMap);
         } else {
+            System.out.println("Login failed for user: " + user.getUsername() + " - Invalid credentials");
             return ResponseEntity.status(401).body(Map.of("error", "Invalid credentials"));
         }
     }

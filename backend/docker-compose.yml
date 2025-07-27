@@ -13,7 +13,7 @@ services:
       - SPRING_JPA_DATABASE_PLATFORM=org.hibernate.dialect.MySQL8Dialect
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
       - SPRING_JPA_SHOW_SQL=true
-      - JWT_SECRET=lmsproj3ct$3cr3tK3y!ForRenderDeploy@2025
+      - JWT_SECRET=Dedeep23
       - PORT=8080
       - LOGGING_LEVEL_ROOT=INFO
       - LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_BOOT_AUTOCONFIGURE=INFO

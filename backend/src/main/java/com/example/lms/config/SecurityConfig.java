@@ -111,9 +111,18 @@ public class SecurityConfig {
                     }
                 } catch (Exception e) {
                     System.out.println("JWT validation error: " + e.getMessage());
+                    // Add more detailed error logging
+                    if (token != null && token.length() > 10) {
+                        System.out.println("Token starts with: " + token.substring(0, 10) + "...");
+                    }
                 }
             } else {
-                System.out.println("No Authorization header found or not Bearer token");
+                // Only log for non-public paths to reduce noise
+                if (!path.equals("/api/health") && !path.equals("/api/users/login") && 
+                    !path.equals("/api/users/register") && !path.startsWith("/api/books/search") &&
+                    !path.equals("/api/books")) {
+                    System.out.println("No Authorization header found for path: " + path);
+                }
             }
             filterChain.doFilter(request, response);
         }

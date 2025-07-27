@@ -12,15 +12,14 @@ public class JwtUtil {
     private final String jwtSecret;
     private final long jwtExpirationMs = 86400000; // 1 day
     
-    public JwtUtil() {
-        String envSecret = System.getenv("JWT_SECRET");
-        if (envSecret != null && !envSecret.isEmpty()) {
-            System.out.println("Using JWT secret from environment variable");
-            this.jwtSecret = envSecret;
-        } else {
-            System.out.println("WARNING: Using default JWT secret. Set JWT_SECRET environment variable in production.");
-            this.jwtSecret = "mySecretKeymySecretKeymySecretKeymySecretKey"; // 32+ chars
-        }
+    public JwtUtil(@org.springframework.beans.factory.annotation.Value("${jwt.secret}") String jwtSecret) {
+        System.out.println("Using JWT secret from application properties");
+        this.jwtSecret = jwtSecret;
+        // Print first 3 characters of the secret followed by asterisks for security
+        String maskedSecret = jwtSecret.length() > 3 
+            ? jwtSecret.substring(0, 3) + "****"  
+            : "****";
+        System.out.println("JWT secret configured: " + maskedSecret);
     }
 
     public Key getSigningKey() {

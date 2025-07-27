@@ -15,11 +15,15 @@ public class HealthController {
     @Value("${spring.datasource.username:not-set}")
     private String dbUser;
     
+    @Value("${jwt.secret:not-set}")
+    private String jwtSecret;
+    
     @GetMapping
     public ResponseEntity<?> checkHealth() {
         // Mask sensitive values for security
         String maskedDbUrl = dbUrl.replaceAll(":[^:]*@", ":***@");
         String maskedDbUser = dbUser.substring(0, Math.min(dbUser.length(), 3)) + "***";
+        boolean jwtConfigured = jwtSecret != null && !jwtSecret.equals("not-set");
         
         return ResponseEntity.ok(Map.of(
             "status", "up",
@@ -28,7 +32,8 @@ public class HealthController {
                 "user", maskedDbUser
             ),
             "env", Map.of(
-                "jwtConfigured", System.getenv("JWT_SECRET") != null
+                "jwtConfigured", jwtConfigured,
+                "jwtSecretFirstChar", jwtConfigured ? jwtSecret.substring(0, 1) + "***" : "not-set"
             )
         ));
     }
