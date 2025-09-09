@@ -8,7 +8,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
 public class WebConfig {
-    @Value("${cors.allowed-origins:https://lmsbeta.onrender.com,http://localhost:3000}")
+    @Value("${cors.allowed-origins:https://lmsdelta.onrender.com,http://localhost:3000}")
     private String allowedOrigins;
 
     @Bean

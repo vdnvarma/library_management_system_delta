@@ -25,7 +25,7 @@ public class RegisterTest {
 
     @Test
     public void testRegisterPageLoads() {
-        driver.get("https://lmsbeta.onrender.com");
+        driver.get("https://lmsdelta.onrender.com");
         // Wait for any button to appear on the page (since register form might not be on main page)
         WebElement anyButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//button")));
         assertTrue(anyButton.isDisplayed());

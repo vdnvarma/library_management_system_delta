@@ -60,7 +60,7 @@ public class PreflightRequestFilter implements Filter {
                 }
                 
                 // Always allow critical origins
-                boolean isProductionFrontend = origin.equals("https://lmsbeta.onrender.com");
+                boolean isProductionFrontend = origin.equals("https://lmsdelta.onrender.com");
                 boolean isLocalOrigin = origin.equals("http://localhost:3000");
                 boolean isBackendOrigin = origin.contains("library-management-system-backend") && origin.contains("onrender.com");
                 

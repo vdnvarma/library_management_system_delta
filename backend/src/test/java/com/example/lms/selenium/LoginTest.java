@@ -27,7 +27,7 @@ public class LoginTest {
 
     @Test
     public void testLoginPageLoads() {
-        driver.get("https://lmsbeta.onrender.com"); // Updated to use deployed frontend
+        driver.get("https://lmsdelta.onrender.com"); // Updated to use deployed frontend
         WebElement usernameInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@placeholder='Username']")));
         WebElement passwordInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input[@placeholder='Password']")));
         WebElement loginButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//button[contains(text(),'Login')]")));

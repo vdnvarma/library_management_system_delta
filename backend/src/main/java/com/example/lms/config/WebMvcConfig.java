@@ -21,7 +21,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         
         registry.addMapping("/**")
             .allowedOrigins(
-                "https://lmsbeta.onrender.com", 
+                "https://lmsdelta.onrender.com", 
                 "http://localhost:3000",
                 "https://library-management-system-backend-lms-demo.onrender.com",
                 "https://library-management-system-backend-jlb9.onrender.com"

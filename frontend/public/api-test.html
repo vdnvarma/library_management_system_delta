@@ -106,7 +106,7 @@
         <h2>API Base URL Configuration</h2>
         <div class="form-group">
             <label for="baseUrl">Base URL (without /api)</label>
-            <input type="text" id="baseUrl" value="http://localhost:8080" />
+            <input type="text" id="baseUrl" value="https://library-management-system-delta.onrender.com" />
         </div>
         <div class="form-group">
             <button onclick="saveBaseUrl()">Save Base URL</button>
@@ -197,7 +197,7 @@
     <script>
         // Store token
         let token = localStorage.getItem('jwt');
-        let baseUrl = localStorage.getItem('baseUrl') || 'http://localhost:8080';
+        let baseUrl = localStorage.getItem('baseUrl') || 'https://library-management-system-delta.onrender.com';
         
         // Update UI with stored values
         document.getElementById('baseUrl').value = baseUrl;

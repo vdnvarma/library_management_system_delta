@@ -25,7 +25,7 @@ public class BookSearchTest {
 
     @Test
     public void testBookSearchFeature() {
-        driver.get("https://lmsbeta.onrender.com");
+        driver.get("https://lmsdelta.onrender.com");
         // Wait for any input field to appear (search box)
         WebElement searchInput = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//input")));
         searchInput.sendKeys("Java");

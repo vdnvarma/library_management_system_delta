@@ -33,7 +33,7 @@ public class CorsConfig {
         
         // Start with explicit high priority origins
         // =================== IMPORTANT: Production Frontend ===================
-        config.addAllowedOrigin("https://lmsbeta.onrender.com");
+        config.addAllowedOrigin("https://lmsdelta.onrender.com");
         
         // For development
         config.addAllowedOrigin("http://localhost:3000");
@@ -58,7 +58,7 @@ public class CorsConfig {
                 String trimmedOrigin = origin.trim();
                 if (!trimmedOrigin.isEmpty()) {
                     // Don't add duplicates
-                    if (!"https://lmsbeta.onrender.com".equals(trimmedOrigin) && 
+                    if (!"https://lmsdelta.onrender.com".equals(trimmedOrigin) && 
                         !"http://localhost:3000".equals(trimmedOrigin)) {
                         config.addAllowedOrigin(trimmedOrigin);
                         System.out.println("CORS: Added additional allowed origin: " + trimmedOrigin);

@@ -45,7 +45,7 @@ public class SecurityConfig {
                 System.out.println("Setting up CORS configuration in SecurityFilterChain");
                 cors.configurationSource(request -> {
                     var corsConfig = new org.springframework.web.cors.CorsConfiguration();
-                    corsConfig.setAllowedOrigins(java.util.Arrays.asList("https://lmsbeta.onrender.com", "http://localhost:3000"));
+                    corsConfig.setAllowedOrigins(java.util.Arrays.asList("https://lmsdelta.onrender.com", "http://localhost:3000"));
                     corsConfig.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"));
                     corsConfig.setAllowCredentials(true);
                     corsConfig.setAllowedHeaders(java.util.Arrays.asList("Authorization", "Content-Type", "Origin"));

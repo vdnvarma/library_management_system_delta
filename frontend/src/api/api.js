@@ -1,4 +1,4 @@
-const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8080";
+const API_BASE = process.env.REACT_APP_API_URL || "https://library-management-system-delta.onrender.com";
 const API_PREFIX = "/api";
 
 console.log("API_BASE URL:", API_BASE);

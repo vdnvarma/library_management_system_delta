@@ -25,7 +25,7 @@ public class IssueManagementTest {
 
     @Test
     public void testIssueManagementFeature() {
-        driver.get("https://lmsbeta.onrender.com");
+        driver.get("https://lmsdelta.onrender.com");
         // Wait for any button to appear (since management features require login/navigation)
         WebElement anyButton = wait.until(ExpectedConditions.visibilityOfElementLocated(By.xpath("//button")));
         assertTrue(anyButton.isDisplayed());
